@@ -144,6 +144,13 @@
 
         .card-actions { display: flex; gap: 8px; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px; }
         .select-escalao { flex-grow: 1; background-color: var(--surface-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; font-size: 12px; outline: none; cursor: pointer; }
+        
+        .btn-edit-athlete {
+            background-color: rgba(0, 179, 126, 0.1); color: var(--accent-color); border: 1px solid rgba(0, 179, 126, 0.2);
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;
+        }
+        .btn-edit-athlete:hover { background-color: var(--accent-color); color: #fff; }
+
         .btn-delete { background-color: rgba(247, 90, 104, 0.1); color: var(--danger-color); border: 1px solid rgba(247, 90, 104, 0.2); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
         .btn-delete:hover { background-color: var(--danger-color); color: #fff; }
 
@@ -154,7 +161,7 @@
             .form-grid { grid-template-columns: 2fr 1fr 1fr 2fr 1fr; }
             .tabs-container { flex-wrap: wrap; overflow-x: visible; }
             .athlete-card { flex-direction: row; justify-content: space-between; align-items: center; }
-            .card-actions { border-top: none; padding-top: 0; margin-top: 0; width: 320px; }
+            .card-actions { border-top: none; padding-top: 0; margin-top: 0; width: 360px; }
         }
     </style>
 </head>
@@ -295,7 +302,6 @@
             document.getElementById("current-title").innerText = colunasConfig[abaAtiva].titulo;
             document.getElementById("current-coach").innerText = `Treinador(a): ${colunasConfig[abaAtiva].treinador}`;
 
-            // Impedir remoção da aba padrão
             if (abaAtiva === "nao_atribuido") {
                 document.getElementById("btn-remover-escalao").style.display = "none";
             } else {
@@ -336,6 +342,7 @@
                         <select class="select-escalao" data-id="${atleta.id}">
                             ${selectOptions}
                         </select>
+                        <button class="btn-edit-athlete" data-id="${atleta.id}" data-nome="${atleta.nome}" data-ano="${atleta.ano}">Editar</button>
                         <button class="btn-delete" data-id="${atleta.id}">Excluir</button>
                     </div>
                 `;
@@ -345,6 +352,31 @@
             document.querySelectorAll(".select-escalao").forEach(select => {
                 select.addEventListener("change", async (e) => {
                     await updateDoc(doc(db, "atletas", e.target.dataset.id), { escalao: e.target.value });
+                });
+            });
+
+            // LÓGICA DO NOVO BOTÃO DE EDITAR INFORMAÇÕES DA ATLETA
+            document.querySelectorAll(".btn-edit-athlete").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    const id = e.target.dataset.id;
+                    const nomeAtual = e.target.dataset.nome;
+                    const anoAtual = e.target.dataset.ano;
+
+                    const novoNome = prompt("Editar nome completo do atleta:", nomeAtual);
+                    if (novoNome === null) return; // Cancela se clicar em Cancelar
+
+                    const novoAno = prompt("Editar ano de nascimento:", anoAtual);
+                    if (novoAno === null) return;
+
+                    if (novoNome.trim() !== "" && !isNaN(parseInt(novoAno))) {
+                        await updateDoc(doc(db, "atletas", id), {
+                            nome: novoNome.trim(),
+                            ano: parseInt(novoAno)
+                        });
+                        alert("Informações atualizadas com sucesso!");
+                    } else {
+                        alert("Dados inválidos. Operação cancelada.");
+                    }
                 });
             });
 
@@ -377,7 +409,6 @@
             }
         });
 
-        // LÓGICA DE CRIAÇÃO DE UM NOVO ESCALÃO
         document.getElementById("btn-criar-escalao").addEventListener("click", () => {
             const nomeEscalao = prompt("Introduz o Nome do Novo Escalão (Ex: Sub-21 Masculino):");
             if (!nomeEscalao) return;
@@ -387,7 +418,6 @@
 
             const genero = prompt("Introduz o Género do Escalão (feminino / masculino):", "feminino").toLowerCase();
 
-            // Gera um ID único simples baseado no tempo
             const idEscalao = "id_" + Date.now();
 
             colunasConfig[idEscalao] = {
@@ -404,11 +434,9 @@
             alert("Novo escalão criado com sucesso!");
         });
 
-        // LÓGICA DE REMOÇÃO DO ESCALÃO ATUAL
         document.getElementById("btn-remover-escalao").addEventListener("click", async () => {
             if (confirm(`Tens a certeza absoluta que queres remover o escalão "${colunasConfig[abaAtiva].titulo}"? As atletas deste grupo voltarão para a aba "Sem Escalão".`)) {
                 
-                // Mover atletas órfãs para a lista de livres de forma preventiva local
                 cacheAtletas.forEach(async (atleta) => {
                     if (atleta.escalao === abaAtiva) {
                         await updateDoc(doc(db, "atletas", atleta.id), { escalao: "nao_atribuido" });
