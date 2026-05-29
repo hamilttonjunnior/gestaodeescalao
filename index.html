@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCA - Académicos - Gestão de Atletas</title>
+    <style>
+        :root {
+            --bg-color: #0b0b0d;
+            --surface-bg: #13131a;
+            --card-bg: #1c1c24;
+            --text-main: #f1f1f4;
+            --text-muted: #9fa0a6;
+            --accent-color: #00b37e;
+            --danger-color: #f75a68;
+            --border-color: #262633;
+            
+            --accent-fem: #ff6b8b;
+            --accent-masc: #4da6ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, sans-serif; }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            padding: 16px;
+            min-height: 100vh;
+            display: none;
+        }
+
+        header {
+            background-color: var(--surface-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+            text-align: center;
+        }
+
+        .header-brand { display: flex; align-items: center; gap: 16px; flex-direction: column; }
+
+        .logo-placeholder {
+            width: 70px; height: 70px; background-color: #262633; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; border: 2px solid var(--border-color);
+            color: var(--text-muted); font-size: 11px; font-weight: bold; overflow: hidden;
+        }
+        .logo-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+
+        header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+        header p { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+
+        .header-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+        .btn-setup {
+            background-color: transparent; color: var(--text-muted); border: 1px dashed var(--border-color);
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-setup:hover { border-color: var(--accent-color); color: #fff; }
+        
+        .btn-add-escalao {
+            background-color: transparent; color: var(--text-muted); border: 1px dashed var(--border-color);
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-add-escalao:hover { border-color: var(--accent-color); color: #fff; }
+
+        /* Formulário de Nova Atleta */
+        .form-container {
+            background-color: var(--surface-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .form-container h3 { font-size: 14px; margin-bottom: 12px; font-weight: 600; color: var(--accent-color); }
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .form-grid input, .form-grid select {
+            background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);
+            padding: 10px; border-radius: 6px; font-size: 13px; outline: none; width: 100%;
+        }
+        .btn-add {
+            background-color: var(--accent-color); color: white; border: none; padding: 10px;
+            border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: background 0.2s;
+        }
+        .btn-add:hover { background-color: #00875f; }
+
+        /* Abas */
+        .tabs-container {
+            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; scrollbar-width: none;
+        }
+        .tabs-container::-webkit-scrollbar { display: none; }
+
+        .tab-button {
+            background-color: var(--surface-bg); color: var(--text-muted); border: 1px solid var(--border-color);
+            padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: all 0.2s;
+        }
+        .tab-button.active {
+            background-color: var(--accent-color); color: #ffffff; border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(0, 179, 126, 0.2);
+        }
+
+        /* Conteúdo da Área Ativa */
+        .active-view-header {
+            background-color: var(--surface-bg); border: 1px solid var(--border-color); border-radius: 12px 12px 0 0; padding: 16px; border-bottom: 2px solid var(--border-color);
+        }
+        .active-view-header h2 { font-size: 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .active-view-header .header-title-zone { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .active-view-header .coach { font-size: 13px; color: var(--accent-color); margin-top: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        
+        .btn-edit-header {
+            background-color: transparent; color: var(--text-muted); border: 1px solid var(--border-color);
+            padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
+        }
+        .btn-edit-header:hover { color: #fff; border-color: #fff; }
+        
+        .btn-delete-escalao {
+            background-color: rgba(247, 90, 104, 0.1); color: var(--danger-color); border: 1px solid rgba(247, 90, 104, 0.2);
+            padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
+        }
+        .btn-delete-escalao:hover { background-color: var(--danger-color); color: #fff; }
+
+        .athlete-list {
+            background-color: var(--surface-bg); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 12px 12px; padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 200px;
+        }
+
+        /* Cartão do Atleta */
+        .athlete-card {
+            background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; transition: border-color 0.2s;
+        }
+        .athlete-card:hover { border-color: #3e3e52; }
+        .athlete-meta { display: flex; justify-content: space-between; align-items: center; }
+        .athlete-name { font-size: 14px; font-weight: 600; color: #ffffff; }
+        
+        .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        .badge.fem { background-color: rgba(255, 107, 139, 0.12); color: var(--accent-fem); }
+        .badge.masc { background-color: rgba(77, 166, 255, 0.12); color: var(--accent-masc); }
+        .athlete-info-row { font-size: 12px; color: var(--text-muted); }
+
+        .card-actions { display: flex; gap: 8px; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px; }
+        .select-escalao { flex-grow: 1; background-color: var(--surface-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; font-size: 12px; outline: none; cursor: pointer; }
+        .btn-delete { background-color: rgba(247, 90, 104, 0.1); color: var(--danger-color); border: 1px solid rgba(247, 90, 104, 0.2); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+        .btn-delete:hover { background-color: var(--danger-color); color: #fff; }
+
+        @media (min-width: 768px) {
+            header { flex-direction: row; justify-content: space-between; text-align: left; }
+            .header-brand { flex-direction: row; }
+            .header-actions { width: auto; display: flex; gap: 10px; flex-direction: row; }
+            .form-grid { grid-template-columns: 2fr 1fr 1fr 2fr 1fr; }
+            .tabs-container { flex-wrap: wrap; overflow-x: visible; }
+            .athlete-card { flex-direction: row; justify-content: space-between; align-items: center; }
+            .card-actions { border-top: none; padding-top: 0; margin-top: 0; width: 320px; }
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        const senhaCorreta = "academicos2027";
+        if (prompt("Insira a palavra-passe de acesso:") === senhaCorreta) {
+            document.body.style.display = "block";
+        } else {
+            alert("Acesso negado!");
+            window.stop();
+        }
+    </script>
+
+    <header>
+        <div class="header-brand">
+            <div class="logo-placeholder">
+                <img src="logo.png" alt="FCA Logo" onerror="this.style.display='none'; this.parentElement.innerText='FCA LOGO'">
+            </div>
+            <div>
+                <h1>Painel de Gestão e Distribuição</h1>
+                <p>Navega pelas abas para gerir os escalões e mover atletas sem esforço.</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-add-escalao" id="btn-criar-escalao">➕ Criar Novo Escalão</button>
+            <button class="btn-setup" id="btn-carregar">⚡ Restaurar Base de Dados do Excel</button>
+        </div>
+    </header>
+
+    <div class="form-container">
+        <h3>+ Adicionar Nova Atleta / Atleta de Volta</h3>
+        <form id="form-add-atleta">
+            <div class="form-grid">
+                <input type="text" id="add-nome" placeholder="Nome Completo do Atleta" required>
+                <input type="number" id="add-ano" placeholder="Ano (Ex: 2012)" required>
+                <select id="add-genero" required>
+                    <option value="" disabled selected>Género</option>
+                    <option value="F">Feminino</option>
+                    <option value="M">Masculino</option>
+                </select>
+                <select id="add-escalao" required>
+                    </select>
+                <button type="submit" class="btn-add">Adicionar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="tabs-container" id="tabs-bar"></div>
+
+    <div id="content-area">
+        <div class="active-view-header">
+            <h2>
+                <div class="header-title-zone">
+                    <span id="current-title">-</span>
+                    <button class="btn-edit-header" id="btn-edit-escalao">Editar Nome</button>
+                    <button class="btn-delete-escalao" id="btn-remover-escalao">Remover Escalão</button>
+                </div> 
+                <span id="current-count" style="font-size: 14px; background: #262633; padding: 2px 10px; border-radius: 12px;">0</span>
+            </h2>
+            <div class="coach">
+                <span id="current-coach">-</span>
+                <button class="btn-edit-header" id="btn-edit-treinador">Editar Treinador</button>
+            </div>
+        </div>
+        <div class="athlete-list" id="athletes-container"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAs-Khg_b8mYhS5O8Z0N0ZfX7V1_uI4_o",
+            authDomain: "gestaoescalao.firebaseapp.com",
+            projectId: "gestaoescalao",
+            storageBucket: "gestaoescalao.appspot.com",
+            messagingSenderId: "206504861359",
+            appId: "1:206504861359:web:eda55af87593835390be5a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let colunasConfig = {
+            "nao_atribuido": { titulo: "Sem Escalão / Livres", treinador: "A definir", genero: "nenhum" },
+            "minis_a": { titulo: "Minis A", treinador: "Graça / Alberto / Catarina", genero: "feminino" },
+            "minis_b": { titulo: "Minis B", treinador: "Graça / Alberto / Catarina", genero: "feminino" },
+            "infantis_a": { titulo: "Infantis A", treinador: "Jorge Torres", genero: "feminino" },
+            "infantis_b": { titulo: "Infantis B", treinador: "Amanda Gonzalez", genero: "feminino" },
+            "infantis_c": { titulo: "Infantis C", treinador: "Leandro Franco", genero: "feminino" },
+            "iniciadas_a": { titulo: "Iniciadas A", treinador: "Inês Ferreira", genero: "feminino" },
+            "iniciadas_b": { titulo: "Iniciadas B", treinador: "Hamilton Junior", genero: "feminino" },
+            "cadetes_fem": { titulo: "Cadetes Fem.", treinador: "Ricardo Pereira", genero: "feminino" },
+            "juvenis_a": { titulo: "Juvenis A", treinador: "Ricardo Magno", genero: "feminino" },
+            "juvenis_b": { titulo: "Juvenis B", treinador: "Pedro Pavezzi", genero: "feminino" },
+            "juniores": { titulo: "Juniores", treinador: "Carlos Louro", genero: "feminino" },
+            "iniciados_masc": { titulo: "Iniciados Masc.", treinador: "Carlos Louro", genero: "masculino" },
+            "cadetes_masc": { titulo: "Cadetes Masc.", treinador: "Bruno Pereira", genero: "masculino" },
+            "juvenis_masc": { titulo: "Juvenis Masc.", treinador: "Bruno Pereira", genero: "masculino" }
+        };
+
+        let abaAtiva = "nao_atribuido";
+        let cacheAtletas = [];
+
+        const tabsBar = document.getElementById("tabs-bar");
+        const athletesContainer = document.getElementById("athletes-container");
+        const selectAddEscalao = document.getElementById("add-escalao");
+
+        function populateFormSelect() {
+            selectAddEscalao.innerHTML = `<option value="" disabled selected>Escolha o Escalão Inicial</option>`;
+            Object.keys(colunasConfig).forEach(key => {
+                selectAddEscalao.innerHTML += `<option value="${key}">${colunasConfig[key].titulo}</option>`;
+            });
+        }
+
+        function renderTabs() {
+            tabsBar.innerHTML = "";
+            Object.keys(colunasConfig).forEach(key => {
+                const button = document.createElement("button");
+                button.className = `tab-button ${key === abaAtiva ? 'active' : ''}`;
+                button.innerText = colunasConfig[key].titulo;
+                button.addEventListener("click", () => {
+                    abaAtiva = key;
+                    renderTabs();
+                    filterAndRenderAthletes();
+                });
+                tabsBar.appendChild(button);
+            });
+        }
+
+        function filterAndRenderAthletes() {
+            if (!colunasConfig[abaAtiva]) {
+                abaAtiva = "nao_atribuido";
+            }
+            
+            document.getElementById("current-title").innerText = colunasConfig[abaAtiva].titulo;
+            document.getElementById("current-coach").innerText = `Treinador(a): ${colunasConfig[abaAtiva].treinador}`;
+
+            // Impedir remoção da aba padrão
+            if (abaAtiva === "nao_atribuido") {
+                document.getElementById("btn-remover-escalao").style.display = "none";
+            } else {
+                document.getElementById("btn-remover-escalao").style.display = "inline-block";
+            }
+
+            athletesContainer.innerHTML = "";
+            const atletasFiltrados = cacheAtletas.filter(a => a.escalao === abaAtiva);
+            document.getElementById("current-count").innerText = atletasFiltrados.length;
+
+            if (atletasFiltrados.length === 0) {
+                athletesContainer.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:14px;">Nenhum atleta neste escalão.</div>`;
+                return;
+            }
+
+            atletasFiltrados.forEach(atleta => {
+                const card = document.createElement("div");
+                card.className = "athlete-card";
+
+                let selectOptions = `<option value="" disabled selected>Mudar de Escalão...</option>`;
+                Object.keys(colunasConfig).forEach(key => {
+                    if (key !== abaAtiva) {
+                        selectOptions += `<option value="${key}">${colunasConfig[key].titulo}</option>`;
+                    }
+                });
+
+                const badgeClass = atleta.genero === "M" ? "masc" : "fem";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="athlete-meta">
+                            <span class="athlete-name">${atleta.nome}</span>
+                            <span class="badge ${badgeClass}">${atleta.genero}</span>
+                        </div>
+                        <div class="athlete-info-row">Ano de Nascimento: ${atleta.ano}</div>
+                    </div>
+                    <div class="card-actions">
+                        <select class="select-escalao" data-id="${atleta.id}">
+                            ${selectOptions}
+                        </select>
+                        <button class="btn-delete" data-id="${atleta.id}">Excluir</button>
+                    </div>
+                `;
+                athletesContainer.appendChild(card);
+            });
+
+            document.querySelectorAll(".select-escalao").forEach(select => {
+                select.addEventListener("change", async (e) => {
+                    await updateDoc(doc(db, "atletas", e.target.dataset.id), { escalao: e.target.value });
+                });
+            });
+
+            document.querySelectorAll(".btn-delete").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    if(confirm("Tens a certeza que queres remover este atleta?")) {
+                        await deleteDoc(doc(db, "atletas", e.target.dataset.id));
+                    }
+                });
+            });
+        }
+
+        document.getElementById("btn-edit-escalao").addEventListener("click", () => {
+            const novoNome = prompt("Mudar nome do escalão:", colunasConfig[abaAtiva].titulo);
+            if (novoNome) {
+                colunasConfig[abaAtiva].titulo = novoNome;
+                renderTabs();
+                populateFormSelect();
+                filterAndRenderAthletes();
+                saveConfigToFirebase();
+            }
+        });
+
+        document.getElementById("btn-edit-treinador").addEventListener("click", () => {
+            const novoTreinador = prompt("Mudar treinador(es):", colunasConfig[abaAtiva].treinador);
+            if (novoTreinador) {
+                colunasConfig[abaAtiva].treinador = novoTreinador;
+                filterAndRenderAthletes();
+                saveConfigToFirebase();
+            }
+        });
+
+        // LÓGICA DE CRIAÇÃO DE UM NOVO ESCALÃO
+        document.getElementById("btn-criar-escalao").addEventListener("click", () => {
+            const nomeEscalao = prompt("Introduz o Nome do Novo Escalão (Ex: Sub-21 Masculino):");
+            if (!nomeEscalao) return;
+            
+            const nomeTreinador = prompt("Introduz o Nome do Treinador Responsável:", "A definir");
+            if (!nomeTreinador) return;
+
+            const genero = prompt("Introduz o Género do Escalão (feminino / masculino):", "feminino").toLowerCase();
+
+            // Gera um ID único simples baseado no tempo
+            const idEscalao = "id_" + Date.now();
+
+            colunasConfig[idEscalao] = {
+                titulo: nomeEscalao,
+                treinador: nomeTreinador,
+                genero: genero === "masculino" ? "masculino" : "feminino"
+            };
+
+            abaAtiva = idEscalao;
+            renderTabs();
+            populateFormSelect();
+            filterAndRenderAthletes();
+            saveConfigToFirebase();
+            alert("Novo escalão criado com sucesso!");
+        });
+
+        // LÓGICA DE REMOÇÃO DO ESCALÃO ATUAL
+        document.getElementById("btn-remover-escalao").addEventListener("click", async () => {
+            if (confirm(`Tens a certeza absoluta que queres remover o escalão "${colunasConfig[abaAtiva].titulo}"? As atletas deste grupo voltarão para a aba "Sem Escalão".`)) {
+                
+                // Mover atletas órfãs para a lista de livres de forma preventiva local
+                cacheAtletas.forEach(async (atleta) => {
+                    if (atleta.escalao === abaAtiva) {
+                        await updateDoc(doc(db, "atletas", atleta.id), { escalao: "nao_atribuido" });
+                    }
+                });
+
+                delete colunasConfig[abaAtiva];
+                abaAtiva = "nao_atribuido";
+                
+                renderTabs();
+                populateFormSelect();
+                filterAndRenderAthletes();
+                await saveConfigToFirebase();
+                alert("Escalão removido!");
+            }
+        });
+
+        async function saveConfigToFirebase() {
+            await setDoc(doc(db, "configuracao", "escaloes"), colunasConfig);
+        }
+
+        function loadConfigAndSync() {
+            onSnapshot(doc(db, "configuracao", "escaloes"), (docSnap) => {
+                if (docSnap.exists()) {
+                    colunasConfig = docSnap.data();
+                    renderTabs();
+                    populateFormSelect();
+                    filterAndRenderAthletes();
+                }
+            });
+
+            onSnapshot(collection(db, "atletas"), (snapshot) => {
+                cacheAtletas = [];
+                snapshot.forEach(docSnap => {
+                    const dados = docSnap.data();
+                    cacheAtletas.push({
+                        id: docSnap.id,
+                        nome: dados.nome,
+                        ano: dados.ano,
+                        genero: dados.genero,
+                        escalao: dados.escalao || "nao_atribuido"
+                    });
+                });
+                filterAndRenderAthletes();
+            });
+        }
+
+        document.getElementById("form-add-atleta").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById("add-nome").value;
+            const ano = parseInt(document.getElementById("add-ano").value);
+            const genero = document.getElementById("add-genero").value;
+            const escalao = document.getElementById("add-escalao").value;
+            const idUnique = "manual_" + Date.now();
+
+            await setDoc(doc(db, "atletas", idUnique), { nome, ano, genero, escalao });
+            
+            document.getElementById("form-add-atleta").reset();
+            alert("Atleta adicionado com sucesso!");
+        });
+
+        document.getElementById("btn-carregar").addEventListener("click", async () => {
+            if(confirm("Queres carregar/restaurar a lista absoluta de atletas do Excel para o Firebase?")) {
+                const todasAsAtletasDoExcel = [
+                    // === MINIS A ===
+                    { id: "ma_1", nome: "Alice Cordeiro Santos", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_2", nome: "Amanda Barros Almeida Batista", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_3", nome: "Ana João Vieira Campos", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_4", nome: "Beatriz Araújo Silva Freitas do Vale", ano: 2020, genero: "F", escalao: "minis_a" },
+                    { id: "ma_5", nome: "Beatriz Barros Almeida Batista", ano: 2018, genero: "F", escalao: "minis_a" },
+                    { id: "ma_6", nome: "Beatriz Gonçalves Pereira", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_7", nome: "Beatriz Sofia Martins Monteiro", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_8", nome: "Claudia Maria Gonzalez Ferreira", ano: 2017, genero: "F", escalao: "minis_a" },
+                    { id: "ma_9", nome: "Clara Ataíde Miranda Araujo Fins", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_10", nome: "Duarte Filipe Lemos Silva", ano: 2017, genero: "F", escalao: "minis_a" },
+                    { id: "ma_11", nome: "Eduarda Cardoso Martins", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_12", nome: "Eva Polozhevets", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_13", nome: "Francisca da Silva Costa", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_14", nome: "Gonçalo Araujo Ferreira", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_15", nome: "João Leiras Tinoco Gomes", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_16", nome: "Joao Pedro Gonçalves Franco", ano: 2020, genero: "F", escalao: "minis_a" },
+                    { id: "ma_17", nome: "Leonor Barbosa Lopes", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_18", nome: "Leticia Sofia Costa Faria", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_19", nome: "Lorena de Sousa Faria", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_20", nome: "Luís Daniel de Barbosa Araújo", ano: 2017, genero: "F", escalao: "minis_a" },
+                    { id: "ma_21", nome: "Mafalda da Cruz Barroso", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_22", nome: "Mafalda Fernandes Silva", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_23", nome: "Maria Clara Amaral Oliveira Magalhães", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_24", nome: "Maria Francisca Araújo Silva Freitas do Vale", ano: 2018, genero: "F", escalao: "minis_a" },
+                    { id: "ma_25", nome: "Maria Inês Penim Pinheiro de Sousa Grilo", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_26", nome: "Maria João Carvalho Araújo", ano: 2014, genero: "F", escalao: "minis_a" },
+                    { id: "ma_27", nome: "Maria João Sousa Rodrigues", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_28", nome: "Martim dos Santos Silva", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_29", nome: "Micaela Prazeres de Morais", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_30", nome: "Miguel Amaral", ano: 2016, genero: "F", escalao: "minis_a" },
+                    { id: "ma_31", nome: "Miguel Sousa Carvalho", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_32", nome: "Pilar dos Santos Macedo", ano: 2015, genero: "F", escalao: "minis_a" },
+                    { id: "ma_33", nome: "Teghena Eleora Banigo", ano: 2016, genero: "F", escalao: "minis_a" },
+                    // === MINIS B ===
+                    { id: "mb_1", nome: "Afonso do Vale Ferreira", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_2", nome: "Alice Correa de Oliveira", ano: 2013, genero: "F", escalao: "minis_b" },
+                    { id: "mb_3", nome: "Gabriela Miranda Passos", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_4", nome: "Heitor Amaral Oliveira Magalhães Santos", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_5", nome: "Jullyane Silva Frutuoso de Lima", ano: 2012, genero: "F", escalao: "minis_b" },
+                    { id: "mb_6", nome: "Leonor Pereira Silva", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_7", nome: "Maria Francisca Carvalho Araújo", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_8", nome: "Maria Eduarda de Oliveira Franqueira", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_9", nome: "Mariana João Carvalho Martins", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_10", nome: "Eva Sofia Araujo Carvalho", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_11", nome: "Helena Maria Diniz Pereira", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_12", nome: "Maria Joao Dias Teixeira", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_13", nome: "Eduarda Alves de Barros Sousa", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_14", nome: "Ana Rafaela da Costa Santos", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_15", nome: "Mariana Miranda Herdeiro", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_16", nome: "Gabriela Maria Araujo Bermudez", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_17", nome: "Catarina Igreja Campos", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_18", nome: "Beatriz Ferreira da Silva", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_19", nome: "Mariana Bras da Silva Gonçalves", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_20", nome: "Leticia Maria Miranda Campinho", ano: 2014, genero: "F", escalao: "minis_b" },
+                    { id: "mb_21", nome: "Camila Maria Gomes Vilarinho", ano: 2014, genero: "F", escalao: "minis_b" },
+                    // === INFANTIS A ===
+                    { id: "inf_a_1", nome: "Beatriz Alçada Guimarães Marques dos Santos", ano: 2012, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_2", nome: "Beatriz Matias Santana", ano: 2012, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_3", nome: "Débora Matilde Nogueira Martins", ano: 2012, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_4", nome: "Iara Fernandes carvalho", ano: 2012, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_5", nome: "Leonor Barreto Carvalho Silva", ano: 2013, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_6", nome: "Leonor Correia Lobo", ano: 2012, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_7", nome: "Madalena Martins Capela de Sousa", ano: 2013, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_8", nome: "Maria Inês Lopes Rodrigues", ano: 2013, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_9", nome: "Mariana Lima Loureiro", ano: 2013, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_10", nome: "Mariana Senra Azevedo", ano: 2013, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_11", nome: "Matilde Reis de Sousa", ano: 2013, genero: "F", escalao: "infantis_a" },
+                    { id: "inf_a_12", nome: "Miriam Coutinho Carvalho", ano: 2013, genero: "F", escalao: "infantis_a" },
+                    // === INFANTIS B ===
+                    { id: "inf_b_1", nome: "Ana Leonor da Costa Rocha", ano: 2012, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_2", nome: "Ana Beatriz Mata Senra", ano: 2012, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_3", nome: "Ines da Silva Chaves", ano: 2012, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_4", nome: "Lia Vicente Barbosa Araújo", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_5", nome: "Mafalda da Costa Lopes", ano: 2012, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_6", nome: "Mafalda Marques da Silva", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_7", nome: "Margarida da Silva Amaral", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_8", nome: "Margarida Dias da Silva Santos", ano: 2012, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_9", nome: "Maria Cunha Correia", ano: 2012, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_10", nome: "Maria Francisca Fonseca Macedo", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_11", nome: "Rita Miranda Ribeiro", ano: 2011, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_12", nome: "Sofia Magalhães Cibrão Coutinho", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_13", nome: "Inês Santiago dos Santos Pereira", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_14", nome: "Laura Fonseca Valadas Gomes da Ponte", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_15", nome: "Matilde Carvalho Félix", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_16", nome: "Beatriz Carvalho Ferreira", ano: 2012, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_17", nome: "Maria Matins", ano: 2013, genero: "F", escalao: "infantis_b" },
+                    { id: "inf_b_18", nome: "Miriam Vasconcelos de Sousa Silva", ano: 2012, genero: "F", escalao: "infantis_b" },
+                    // === INFANTIS C ===
+                    { id: "inf_c_1", nome: "Mariana Carvalho Félix", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_2", nome: "Ana Margarida Gonçalves Franco", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_3", nome: "Lara Barbosa Ferraz", ano: 2014, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_4", nome: "Sara de Castro Torres", ano: 2014, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_5", nome: "Bianca Morgado Fernandes", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_6", nome: "Maria José da Silva González", ano: 2014, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_7", nome: "Carolina Peixoto Lopes", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_8", nome: "Maria Vitoria Pereira Silva", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_9", nome: "Letícia Martins Fernandes", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_10", nome: "Sara Matilde Costa Macedo", ano: 2025, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_11", nome: "Inês Vieira da Silva", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_12", nome: "Maria Leonor Lopes Dias", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_13", nome: "Lara de Castro Torres", ano: 2015, genero: "F", escalao: "infantis_c" },
+                    { id: "inf_c_14", nome: "Mariana Vieira da Nóbrega", ano: 2013, genero: "F", escalao: "infantis_c" },
+                    // === INICIADAS A ===
+                    { id: "ini_a_1", nome: "Catarina Silva Oliveira", ano: 2011, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_2", nome: "Diana Rafaela da Silva Dantas", ano: 2011, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_3", nome: "Inês Alexandra Sousa Monteiro", ano: 2011, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_4", nome: "Maria Faria Silva", ano: 2011, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_5", nome: "Maria Inês rodrigues Costa", ano: 2011, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_6", nome: "Mariana Gouveia Correia", ano: 2011, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_7", nome: "Diana Gonçalves Faria", ano: 2012, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_8", nome: "Eva de Castro Torres", ano: 2012, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_9", nome: "Inês Maria Peixoto Beleza", ano: 2012, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_10", nome: "Matilde Martins dos Santos", ano: 2012, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_11", nome: "Mia Torres da Silva Correia", ano: 2013, genero: "F", escalao: "iniciadas_a" },
+                    { id: "ini_a_12", nome: "Miguela Sousa Basto Dias da Silva", ano: 2012, genero: "F", escalao: "iniciadas_a" },
+                    // === INICIADAS B ===
+                    { id: "ini_b_1", nome: "Maria Luísa Lima Soutelo", ano: 2012, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_2", nome: "Carolina Coutada Rodrigues", ano: 2011, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_3", nome: "Ana Carolina da Silva Veríssimo", ano: 2011, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_4", nome: "Bárbara Maria Alvelos Fernandes", ano: 2012, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_5", nome: "Nataliia Mariia Karpets", ano: 2011, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_6", nome: "Beatriz Maciel Avis de Brito", ano: 2012, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_7", nome: "Zita dos Santos Macedo", ano: 2012, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_8", nome: "Maria Luísa Meneses Baptista", ano: 2010, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_9", nome: "Matilde Bastos rocha", ano: 2011, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_10", nome: "Clara Beatriz Pires Ferreira", ano: 2012, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_11", nome: "Francisca Gaião Miranda da Silva", ano: 2010, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_12", nome: "Nádia dos Sandos Silva", ano: 2010, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_13", nome: "Carolina Braga da Silva Cardoso Arantes", ano: 2010, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_14", nome: "Matilde Luís Campos Loureiro", ano: 2010, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_15", nome: "Carla Rodríguez Miranda", ano: 2010, genero: "F", escalao: "iniciadas_b" },
+                    { id: "ini_b_16", nome: "Matilde Sofia Costa Silva", ano: 2010, genero: "F", escalao: "iniciadas_b" },
+                    // === CADETES FEMININO ===
+                    { id: "cad_f_1", nome: "Ana margarida apolinário cardoso", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_2", nome: "Ana Teresa Pereira Freitas", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_3", nome: "Beatriz Monteiro Torres", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_4", nome: "Iara de Castro Barreiro Pereira", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_5", nome: "Margarida Costa Amaro", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_6", nome: "Margarida dos Santos Lima de Araújo", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_7", nome: "Mariana Fernandes Silva", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_8", nome: "Matilde Duarte Costa", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_9", nome: "Matilde Silva Sousa", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_10", nome: "Melanie Ribeiro Martins", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_11", nome: "Inês Brito Pereira", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_12", nome: "Leonor Soares Capela Gomes", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_13", nome: "Francisca Amaral Cunha", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    { id: "cad_f_14", nome: "Maria Antónia da Cruz e Soares Vieira", ano: 2010, genero: "F", escalao: "cadetes_fem" },
+                    // === JUVENIS A ===
+                    { id: "juv_a_1", nome: "Ana Matilde Dos Santos Arantes Magno", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_2", nome: "Ana Teresa Bogas de Castro Pereira", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_3", nome: "Beatriz Pereira da Silva", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_4", nome: "Francisca Correia Oliveira", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_5", nome: "Inês Neto Carneiro", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_6", nome: "Jénifer Ralha Amorim", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_7", nome: "Laura Antónia Ferreira Santos", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_8", nome: "Leonor Maia Pereira", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_9", nome: "Mafalda Cunha", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_10", nome: "Maia Gylytska", ano: 2010, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_11", nome: "Margarida Mesquita Costa Gomes Brás", ano: 2009, genero: "F", escalao: "juvenis_a" },
+                    { id: "juv_a_12", nome: "Viviana Sousa Matos", ano: 2010, genero: "F", escalao: "juvenis_a" },
+                    // === JUVENIS B ===
+                    { id: "juv_b_1", nome: "FERNANDA SOFIA DE PAIVA SANTANA", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_2", nome: "INÊS DA SILVA BARBOSA", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_3", nome: "LEONOR DA SILVA BARBOSA", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_4", nome: "IARA AZEVEDO SAMPAIO", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_5", nome: "ANA BEATRIZ CARVALHO GONÇALVES", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_6", nome: "CAROLINA JUNCAL PIRES PEREIRA BOUÇAS", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_7", nome: "LARA VIEIRA DE OLIVEIRA", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_8", nome: "LUÍSA PEREIRA ARAÚJO", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_9", nome: "KEREN ALEJANDRA GUILLEN AMARISTA", ano: 2010, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_10", nome: "MELISSA PEREIRA COSTA", ano: 2010, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_11", nome: "MARIA CARVALHO FÉLIX", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_12", nome: "IASMYM KAMILE PEREIRA SILVA", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_13", nome: "LEONOR BRITO AGUIAR", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_14", nome: "ANA LUISA VILAS BOAS RODRIGUES", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_15", nome: "DANIELA FERREIRA SOEIRO", ano: 2009, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_16", nome: "MARIA FERNANDES SILVA", ano: 2010, genero: "F", escalao: "juvenis_b" },
+                    { id: "juv_b_17", nome: "LILIAN VITÓRIA DO NASCIMENTO ARAÚJO", ano: 2026, genero: "F", escalao: "juvenis_b" },
+                    // === JUNIORES ===
+                    { id: "jun_1", nome: "Alexandra Abrantes da Cruz", ano: 2005, genero: "F", escalao: "juniores" },
+                    { id: "jun_2", nome: "Beatriz Linhares Carvalho", ano: 2008, genero: "F", escalao: "juniores" },
+                    { id: "jun_3", nome: "Beatriz Maia Pereira", ano: 2006, genero: "F", escalao: "juniores" },
+                    { id: "jun_4", nome: "Bruna Oliveira da Cunha", ano: 2006, genero: "F", escalao: "juniores" },
+                    { id: "jun_5", nome: "Carolina Gouveia Correia", ano: 2006, genero: "F", escalao: "juniores" },
+                    { id: "jun_6", nome: "Francisca Coelho Arantes", ano: 2006, genero: "F", escalao: "juniores" },
+                    { id: "jun_7", nome: "Joana Maria Peixoto Beleza", ano: 2008, genero: "F", escalao: "juniores" },
+                    { id: "jun_8", nome: "Joana Pires Reis", ano: 2006, genero: "F", escalao: "juniores" },
+                    { id: "jun_9", nome: "Leonor Oliveira Loureiro", ano: 2008, genero: "F", escalao: "juniores" },
+                    { id: "jun_10", nome: "Mafalda Carvalho Macedo", ano: 2007, genero: "F", escalao: "juniores" },
+                    { id: "jun_11", nome: "Maria João Magalhães de Figueiredo", ano: 2008, genero: "F", escalao: "juniores" },
+                    { id: "jun_12", nome: "Rita Coelho Peixoto dos Santos", ano: 2008, genero: "F", escalao: "juniores" },
+                    { id: "jun_13", nome: "Sara Leonor Lima Gonçalves", ano: 2007, genero: "F", escalao: "juniores" },
+                    // === INICIADOS MASCULINO ===
+                    { id: "ini_m_1", nome: "Álvaro Santiago da Costa Pereira", ano: 2011, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_2", nome: "Yan Botelho Lourenço", ano: 2011, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_3", nome: "Afonso Fernandes Miranda", ano: 2007, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_4", nome: "João Tiago Correia da Silva Pessegueiro Afonso", ano: 2011, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_5", nome: "Pedro Duarte Silva Costa", ano: 2011, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_6", nome: "Calebe Santana da Fonseca Lino", ano: 2011, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_7", nome: "Dinis Costa Silva", ano: 2011, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_8", nome: "Simão Matos Pinheiro", ano: 2011, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_9", nome: "Francisco José Afonso Martins", ano: 2012, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_10", nome: "Hélder Mateus Pais Macedo", ano: 2012, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_11", nome: "Bruno Nascimento Costa", ano: 2012, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_12", nome: "Lucas Gabriel Assis Andrade", ano: 2012, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_13", nome: "Pedro Dinis Barbosa Ourives", ano: 2013, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_14", nome: "Tomás Freitas Gomes", ano: 2013, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_15", nome: "Mateus Maciel Lima de Barbosa e Silva", ano: 2013, genero: "M", escalao: "iniciados_masc" },
+                    { id: "ini_m_16", nome: "Nazar Lytvynchuk", ano: 2013, genero: "M", escalao: "iniciados_masc" },
+                    // === CADETES MASCULINO ===
+                    { id: "cad_m_1", nome: "Afonso Loureiro da Silva", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_2", nome: "Isaque Fernandes da Silva", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_3", nome: "André Nuno Costa Macedo", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_4", nome: "Emanel Assis Andrade", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_5", nome: "Guilherme Eduardo Barreto Sousa", ano: 2011, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_6", nome: "João Pedro Santos Batista", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_7", nome: "Manuel Francisco Rodrigues dos Santos", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_8", nome: "Alefe Kelvin de Oliveira Souza", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_9", nome: "João Miguel Lopes Faria", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_10", nome: "Rúben Tomé Maia Vilas Boas", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    { id: "cad_m_11", nome: "Rodrigo Leal Ribeiro", ano: 2010, genero: "M", escalao: "cadetes_masc" },
+                    // === JUVENIS MASCULINO ===
+                    { id: "juv_m_1", nome: "Francisco José costa Simão", ano: 2009, genero: "M", escalao: "juvenis_masc" },
+                    { id: "juv_m_2", nome: "Tomas Alvelos Oliveira", ano: 2009, genero: "M", escalao: "juvenis_masc" },
+                    { id: "juv_m_3", nome: "Tomas Macedo de Figueiredo e Silva", ano: 2009, genero: "M", escalao: "juvenis_masc" },
+                    { id: "juv_m_4", nome: "João Pedro da Costa Pires", ano: 2009, genero: "M", escalao: "juvenis_masc" },
+                    { id: "juv_m_5", nome: "Rafael Jonas Correia", ano: 2009, genero: "M", escalao: "juvenis_masc" },
+                    { id: "juv_m_6", nome: "Tiago Lamego", ano: 2009, genero: "M", escalao: "juvenis_masc" },
+                    { id: "juv_m_7", nome: "Diogo Santos Freitas", ano: 2009, genero: "M", escalao: "juvenis_masc" }
+                ];
+
+                await setDoc(doc(db, "configuracao", "escaloes"), colunasConfig);
+
+                for (const atleta of todasAsAtletasDoExcel) {
+                    await setDoc(doc(db, "atletas", atleta.id), {
+                        nome: atleta.nome,
+                        ano: atleta.ano,
+                        genero: atleta.genero,
+                        escalao: atleta.escalao
+                    });
+                }
+                alert("Base de dados limpa e restaurada perfeitamente!");
+            }
+        });
+
+        renderTabs();
+        loadConfigAndSync();
+    </script>
+</body>
+</html>
